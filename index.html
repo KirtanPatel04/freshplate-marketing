@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FreshPlate — Know What's in Your Pantry</title>
+  <meta name="description" content="FreshPlate tracks your pantry in real time so you always know what you have, what's expiring, and what to cook next." />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --green: #3DB85C;
+      --dark-green: #1A3A1A;
+      --light-green: #F0F7EE;
+      --mid-green: #4A6B4A;
+      --border: #D4E8D0;
+      --terra: #C4714A;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
+      background: #fff;
+      color: var(--dark-green);
+      line-height: 1.6;
+    }
+
+    /* ── APP ICON ── */
+    .app-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 9px;
+      overflow: hidden;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .app-icon img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .app-icon-lg {
+      width: 52px;
+      height: 52px;
+      border-radius: 14px;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(255,255,255,0.92);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 32px;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo-text {
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--dark-green);
+      letter-spacing: -0.5px;
+    }
+
+    .logo-text span { color: var(--green); }
+
+    .nav-cta {
+      margin-left: auto;
+      background: var(--green);
+      color: #fff;
+      font-weight: 700;
+      font-size: 14px;
+      padding: 10px 22px;
+      border-radius: 50px;
+      text-decoration: none;
+      transition: background 0.2s;
+    }
+
+    .nav-cta:hover { background: #2ea04d; }
+
+    /* ── HERO ── */
+    .hero {
+      background: var(--light-green);
+      text-align: center;
+      padding: 96px 24px 80px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: -120px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 800px;
+      height: 800px;
+      background: radial-gradient(circle, rgba(61,184,92,0.18) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .hero-icon {
+      width: 96px;
+      height: 96px;
+      border-radius: 24px;
+      overflow: hidden;
+      margin: 0 auto 28px;
+      box-shadow: 0 12px 40px rgba(26,58,26,0.18);
+    }
+
+    .hero-icon img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .badge-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #fff;
+      border: 1px solid var(--border);
+      color: var(--green);
+      font-size: 13px;
+      font-weight: 600;
+      padding: 6px 16px;
+      border-radius: 50px;
+      margin-bottom: 28px;
+      letter-spacing: 0.3px;
+    }
+
+    .hero h1 {
+      font-size: clamp(40px, 7vw, 76px);
+      font-weight: 800;
+      color: var(--dark-green);
+      letter-spacing: -2px;
+      line-height: 1.05;
+      max-width: 760px;
+      margin: 0 auto 24px;
+    }
+
+    .hero h1 em {
+      font-style: normal;
+      color: var(--green);
+    }
+
+    .hero p {
+      font-size: clamp(17px, 2.5vw, 22px);
+      color: var(--mid-green);
+      max-width: 520px;
+      margin: 0 auto 40px;
+      line-height: 1.55;
+    }
+
+    .cta-group {
+      display: flex;
+      gap: 14px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .cta-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--dark-green);
+      color: #fff;
+      font-weight: 700;
+      font-size: 16px;
+      padding: 16px 28px;
+      border-radius: 14px;
+      text-decoration: none;
+      transition: background 0.2s, transform 0.15s;
+    }
+
+    .cta-primary:hover { background: #0f2310; transform: translateY(-1px); }
+
+    .cta-primary svg { width: 22px; height: 22px; fill: #fff; }
+
+    .cta-secondary {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #fff;
+      color: var(--dark-green);
+      font-weight: 600;
+      font-size: 15px;
+      padding: 16px 28px;
+      border-radius: 14px;
+      text-decoration: none;
+      border: 1.5px solid var(--border);
+      transition: border-color 0.2s, transform 0.15s;
+    }
+
+    .cta-secondary:hover { border-color: var(--green); transform: translateY(-1px); }
+
+    /* ── FEATURES ── */
+    .section {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 96px 32px;
+    }
+
+    .section-eyebrow {
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--green);
+      margin-bottom: 16px;
+    }
+
+    .section-title {
+      font-size: clamp(28px, 4vw, 44px);
+      font-weight: 800;
+      letter-spacing: -1px;
+      line-height: 1.1;
+      margin-bottom: 56px;
+      max-width: 560px;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 24px;
+    }
+
+    .feature-card {
+      background: var(--light-green);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 32px 28px;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .feature-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 40px rgba(26,58,26,0.1);
+    }
+
+    .feature-icon {
+      width: 52px;
+      height: 52px;
+      border-radius: 14px;
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+
+    .feature-icon img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .feature-card h3 {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 10px;
+      color: var(--dark-green);
+    }
+
+    .feature-card p {
+      font-size: 15px;
+      color: var(--mid-green);
+      line-height: 1.65;
+    }
+
+    /* ── HOW IT WORKS ── */
+    .how-section {
+      background: var(--light-green);
+      padding: 96px 32px;
+    }
+
+    .how-inner {
+      max-width: 1080px;
+      margin: 0 auto;
+    }
+
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 32px;
+    }
+
+    .step-number {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: var(--green);
+      color: #fff;
+      font-size: 20px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+
+    .step h3 {
+      font-size: 17px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .step p {
+      font-size: 14px;
+      color: var(--mid-green);
+      line-height: 1.65;
+    }
+
+    /* ── REVIEWS ── */
+    .reviews-section {
+      padding: 96px 32px;
+      max-width: 1080px;
+      margin: 0 auto;
+    }
+
+    .reviews-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+    }
+
+    .review-card {
+      background: var(--light-green);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 28px;
+    }
+
+    .stars {
+      color: var(--green);
+      font-size: 18px;
+      letter-spacing: 2px;
+      margin-bottom: 12px;
+    }
+
+    .review-card p {
+      font-size: 15px;
+      color: var(--dark-green);
+      line-height: 1.65;
+      margin-bottom: 16px;
+    }
+
+    .reviewer {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--mid-green);
+    }
+
+    /* ── CTA BAND ── */
+    .cta-band {
+      background: var(--dark-green);
+      text-align: center;
+      padding: 96px 32px;
+      color: #fff;
+    }
+
+    .cta-band h2 {
+      font-size: clamp(28px, 4vw, 48px);
+      font-weight: 800;
+      letter-spacing: -1px;
+      line-height: 1.1;
+      margin-bottom: 18px;
+    }
+
+    .cta-band p {
+      font-size: 18px;
+      opacity: 0.75;
+      max-width: 480px;
+      margin: 0 auto 40px;
+    }
+
+    .cta-band a {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--green);
+      color: #fff;
+      font-weight: 700;
+      font-size: 17px;
+      padding: 18px 36px;
+      border-radius: 14px;
+      text-decoration: none;
+      transition: background 0.2s, transform 0.15s;
+    }
+
+    .cta-band a:hover { background: #2ea04d; transform: translateY(-2px); }
+
+    .cta-band a svg { width: 22px; height: 22px; fill: #fff; }
+
+    /* ── FOOTER ── */
+    footer {
+      background: var(--dark-green);
+      border-top: 1px solid rgba(255,255,255,0.08);
+      padding: 40px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .footer-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .footer-logo .app-icon {
+      border-radius: 9px;
+    }
+
+    .footer-logo-text {
+      font-size: 17px;
+      font-weight: 800;
+      color: #fff;
+    }
+
+    .footer-logo-text span { color: var(--green); }
+
+    .footer-links {
+      display: flex;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+
+    .footer-links a {
+      color: rgba(255,255,255,0.5);
+      text-decoration: none;
+      font-size: 13px;
+      transition: color 0.2s;
+    }
+
+    .footer-links a:hover { color: #fff; }
+
+    .footer-copy {
+      color: rgba(255,255,255,0.3);
+      font-size: 12px;
+      width: 100%;
+      text-align: center;
+      margin-top: 8px;
+    }
+
+    @media (max-width: 600px) {
+      footer { flex-direction: column; align-items: flex-start; }
+      .footer-copy { text-align: left; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav>
+    <div class="app-icon">
+      <img src="logo.png" alt="FreshPlate logo" />
+    </div>
+    <span class="logo-text">Fresh<span>Plate</span></span>
+    <a class="nav-cta" href="#download">Download Free</a>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="badge-pill">✦ Available on iPhone</div>
+    <div class="hero-icon">
+      <img src="logo.png" alt="FreshPlate" />
+    </div>
+    <h1>Always Know<br>What's in Your <em>Pantry</em></h1>
+    <p>FreshPlate tracks every ingredient you own — so you stop wasting food, save money, and always know what to cook next.</p>
+    <div class="cta-group" id="download">
+      <a class="cta-primary" href="https://apps.apple.com/app/freshplate" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
+        Download on the App Store
+      </a>
+      <a class="cta-secondary" href="#features">See Features →</a>
+    </div>
+  </section>
+
+  <!-- FEATURES -->
+  <div class="section" id="features">
+    <p class="section-eyebrow">Why FreshPlate</p>
+    <h2 class="section-title">Your pantry, always under control.</h2>
+
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon"><img src="logo.png" alt="" /></div>
+        <h3>Pantry Tracking</h3>
+        <p>Log what you have at home and FreshPlate keeps a live inventory. No more buying duplicates or discovering expired cans at the back of the shelf.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon"><img src="logo.png" alt="" /></div>
+        <h3>Expiry Alerts</h3>
+        <p>Set expiration dates and get notified before food goes bad. FreshPlate helps you use what you have before it's wasted.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon"><img src="logo.png" alt="" /></div>
+        <h3>Cook from Your Pantry</h3>
+        <p>FreshPlate suggests recipes based on what you already own — so you cook smarter, not just from a generic meal plan.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon"><img src="logo.png" alt="" /></div>
+        <h3>Smart Grocery Lists</h3>
+        <p>FreshPlate knows what you're running low on and builds your grocery list automatically — no overlap with what's already in your pantry.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon"><img src="logo.png" alt="" /></div>
+        <h3>Barcode Scanning</h3>
+        <p>Scan any barcode to add an item instantly. FreshPlate pulls in the product name, category, and nutritional info so you don't have to type a thing.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon"><img src="logo.png" alt="" /></div>
+        <h3>Reduce Food Waste</h3>
+        <p>The average household throws away hundreds of dollars in food each year. FreshPlate helps you track, use, and save — every week.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- HOW IT WORKS -->
+  <div class="how-section">
+    <div class="how-inner">
+      <p class="section-eyebrow">How It Works</p>
+      <h2 class="section-title">Set up your pantry in minutes.</h2>
+
+      <div class="steps">
+        <div class="step">
+          <div class="step-number">1</div>
+          <h3>Add Your Items</h3>
+          <p>Scan barcodes or search by name to log everything in your pantry, fridge, and freezer.</p>
+        </div>
+        <div class="step">
+          <div class="step-number">2</div>
+          <h3>Track Expiry Dates</h3>
+          <p>Set dates once — FreshPlate reminds you before anything goes bad so nothing gets wasted.</p>
+        </div>
+        <div class="step">
+          <div class="step-number">3</div>
+          <h3>Get Recipe Ideas</h3>
+          <p>FreshPlate shows you what you can cook right now, using ingredients you already have at home.</p>
+        </div>
+        <div class="step">
+          <div class="step-number">4</div>
+          <h3>Shop Smarter</h3>
+          <p>Auto-generated grocery lists fill in only what's missing — no duplicates, no forgotten items.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- REVIEWS -->
+  <div class="reviews-section">
+    <p class="section-eyebrow">Loved by Users</p>
+    <h2 class="section-title">Real people, real results.</h2>
+
+    <div class="reviews-grid">
+      <div class="review-card">
+        <div class="stars">★★★★★</div>
+        <p>"I used to throw out so much food without realizing it. FreshPlate completely changed that — I check my pantry before every grocery run now and I'm spending way less."</p>
+        <span class="reviewer">— Sarah M.</span>
+      </div>
+      <div class="review-card">
+        <div class="stars">★★★★★</div>
+        <p>"The expiry alerts alone are worth downloading this app. I've stopped wasting produce and I love that it suggests recipes based on what I actually have."</p>
+        <span class="reviewer">— James T.</span>
+      </div>
+      <div class="review-card">
+        <div class="stars">★★★★★</div>
+        <p>"Scanning barcodes makes adding items so fast. My whole household shares the pantry list and we never buy the same thing twice anymore."</p>
+        <span class="reviewer">— Priya K.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- CTA BAND -->
+  <div class="cta-band">
+    <h2>Stop guessing. Start tracking.</h2>
+    <p>Download FreshPlate free and take control of your pantry today.</p>
+    <a href="https://apps.apple.com/app/freshplate" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
+      Download Free on the App Store
+    </a>
+  </div>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-logo">
+      <div class="app-icon">
+        <img src="logo.png" alt="FreshPlate" />
+      </div>
+      <span class="footer-logo-text">Fresh<span>Plate</span></span>
+    </div>
+    <div class="footer-links">
+      <a href="https://kirtanpatel04.github.io/freshplate-support/">Support</a>
+      <a href="mailto:support@freshplateapp.com">Contact</a>
+    </div>
+    <span class="footer-copy">&copy; 2026 FreshPlate. All rights reserved.</span>
+  </footer>
+
+</body>
+</html>
